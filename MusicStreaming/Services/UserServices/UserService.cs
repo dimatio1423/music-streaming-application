@@ -3,18 +3,21 @@ using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using BusinessObjects.Models.ArtistModel.Request;
 using BusinessObjects.Models.PasswordModel;
+using BusinessObjects.Models.RefreshTokenModel.Request;
 using BusinessObjects.Models.ResultModels;
 using BusinessObjects.Models.UserModels;
 using BusinessObjects.Models.UserModels.Request;
 using BusinessObjects.Models.UserModels.Response;
 using CloudinaryDotNet.Actions;
 using Repositories.ArtistRepos;
+using Repositories.RefreshTokenRepos;
 using Repositories.UserRepos;
 using Services.AuthenticationServices;
 using Services.CloudinaryService;
 using Services.EmailService;
 using Services.FileServices;
 using Services.Helpers.Handler.DecodeTokenHandler;
+using Services.OTPServices;
 using Services.Security;
 using System;
 using System.Collections.Generic;
@@ -33,16 +36,20 @@ namespace Services.UserServices
         private readonly IDecodeTokenHandler _decodeToken;
         private readonly IFileService _fileService;
         private readonly ICloudinaryService _cloudinaryService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEmailService _emailService;
+        private readonly IOTPService _otpService;
         private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository, 
+        public UserService(IUserRepository userRepository,
             IArtistRepository artistRepository,
             IAuthenticationService authenticationService,
             IDecodeTokenHandler decodeToken,
             IFileService fileService,
             ICloudinaryService cloudinaryService,
             IEmailService emailService,
+            IRefreshTokenRepository refreshTokenRepository,
+            IOTPService otpService,
             IMapper mapper)
         {
             _userRepository = userRepository;
@@ -51,7 +58,9 @@ namespace Services.UserServices
             _decodeToken = decodeToken;
             _fileService = fileService;
             _cloudinaryService = cloudinaryService;
+            _refreshTokenRepository = refreshTokenRepository;
             _emailService = emailService;
+            _otpService = otpService;
             _mapper = mapper;
         }
 
@@ -98,7 +107,6 @@ namespace Services.UserServices
 
                 await _userRepository.Update(currUser);
 
-                
             }
             catch (Exception ex)
             {
@@ -132,7 +140,9 @@ namespace Services.UserServices
                     return result;
                 }
 
-                await _emailService.SendUserResetPassword(currUser.Username, currUser.Email, GenerateOTP(), new EmailSendingFormat { Title = "Test", Information = "test" });
+                var newOtp = await _otpService.CreateOTPCodeForEmail(currUser.UserId);
+
+                await _emailService.SendUserResetPassword(currUser.Username, currUser.Email, newOtp);
 
             }
             catch (Exception ex)
@@ -164,6 +174,17 @@ namespace Services.UserServices
                     {
                         var token = _authenticationService.GenerateJWT(currUser);
 
+                        var refreshToken = _authenticationService.GenerateRefreshToken();
+
+                        var newRefreshToken = new RefreshToken
+                        {
+                            RefreshToken1 = refreshToken,
+                            ExpiredAt = DateTime.Now.AddDays(1),
+                            UserId = currUser.UserId
+                        };
+
+                        await _refreshTokenRepository.Insert(newRefreshToken);
+
                         var userLoginRes = new UserLoginResModel
                         {
                             UserId = currUser.UserId,
@@ -171,7 +192,8 @@ namespace Services.UserServices
                             Email = currUser.Email,
                             SubscriptionType = currUser.SubscriptionType,
                             Role = currUser.Role,
-                            Token = token
+                            Token = token,
+                            RefreshToken = refreshToken
                         };
 
                         result.Data = userLoginRes;
@@ -348,9 +370,44 @@ namespace Services.UserServices
             return result;
         }
 
-        public Task<ResultModel> ResetPassword(ResetPasswordReqModel resetPasswordReq, string token)
+        public async Task<ResultModel> ResetPassword(ResetPasswordReqModel resetPasswordReq)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Reset password successfully"
+            };
+
+            try
+            {
+
+                var currUser = await _userRepository.GetUserByEmail(resetPasswordReq.Email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                await _otpService.VerifyOTP(resetPasswordReq.OTP, currUser.UserId);
+
+                currUser.Password = PasswordHasher.HashPassword(resetPasswordReq.NewPassword);
+
+                await _userRepository.Update(currUser);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
         public async Task<ResultModel> UpdateUserProfile(UserUpdateProfileReqModel userUpdateProfileReq, string token)
@@ -478,6 +535,41 @@ namespace Services.UserServices
             var otp = new Random().Next(100000, 999999).ToString();
 
             return otp;
+        }
+
+        public async Task<ResultModel> Logout(RefreshTokenReqModel refreshTokenReqModel)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Log out successfully"
+
+            };
+
+            try
+            {
+                var currRefreshToken = await _refreshTokenRepository.GetByRefreshToken(refreshTokenReqModel.RefreshToken);
+
+                if (currRefreshToken == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Refresh Token does not exist";
+                    return result;
+                }
+
+                await _refreshTokenRepository.Remove(currRefreshToken);
+
+            }catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
     }
 }

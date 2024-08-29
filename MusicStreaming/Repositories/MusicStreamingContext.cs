@@ -27,9 +27,13 @@ public partial class MusicStreamingContext : DbContext
 
     public virtual DbSet<ListeningHistory> ListeningHistories { get; set; }
 
+    public virtual DbSet<OtpCode> OtpCodes { get; set; }
+
     public virtual DbSet<Playlist> Playlists { get; set; }
 
     public virtual DbSet<PlaylistSong> PlaylistSongs { get; set; }
+
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<Song> Songs { get; set; }
 
@@ -178,6 +182,30 @@ public partial class MusicStreamingContext : DbContext
                 .HasConstraintName("FK__listening__user___4F7CD00D");
         });
 
+        modelBuilder.Entity<OtpCode>(entity =>
+        {
+            entity.HasKey(e => e.OptId).HasName("PK__OTPCode__3214EC0726F84CAA");
+
+            entity.ToTable("otp_code");
+
+            entity.Property(e => e.OptId).HasColumnName("opt_id");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("created_at");
+            entity.Property(e => e.IsUsed).HasColumnName("isUsed");
+            entity.Property(e => e.OptCode)
+                .HasMaxLength(6)
+                .IsUnicode(false)
+                .IsFixedLength()
+                .HasColumnName("opt_code");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.OtpCodes)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__OTPCode__Created__59FA5E80");
+        });
+
         modelBuilder.Entity<Playlist>(entity =>
         {
             entity.HasKey(e => e.PlaylistId).HasName("PK__playlist__FB9C1410FF82A294");
@@ -219,6 +247,28 @@ public partial class MusicStreamingContext : DbContext
                 .HasForeignKey(d => d.SongId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__playlist___song___5165187F");
+        });
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.RefreshTokenId).HasName("PK_RefreshToken");
+
+            entity.ToTable("refresh_token");
+
+            entity.Property(e => e.RefreshTokenId).HasColumnName("refresh_token_id");
+            entity.Property(e => e.ExpiredAt)
+                .HasColumnType("datetime")
+                .HasColumnName("expired_at");
+            entity.Property(e => e.RefreshToken1)
+                .HasMaxLength(128)
+                .IsUnicode(false)
+                .HasColumnName("refresh_token");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.User).WithMany(p => p.RefreshTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_RefreshToken_User");
         });
 
         modelBuilder.Entity<Song>(entity =>

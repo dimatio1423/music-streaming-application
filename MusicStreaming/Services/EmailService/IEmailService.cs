@@ -9,7 +9,7 @@ namespace Services.EmailService
     public interface IEmailService
     {
         Task SendRegistrationEmail(string fullName, string userEmail, EmailSendingFormat sendingFormat);
-        Task SendUserResetPassword(string fullName, string userEmail,string OTP, EmailSendingFormat sendingFormat);
+        Task SendUserResetPassword(string fullName, string userEmail,string OTP);
 
     }
 }

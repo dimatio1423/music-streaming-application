@@ -25,9 +25,13 @@ namespace Services.Helper.Handler.MapperProfiles
                 .ForMember(dest => dest.songAlbums, opt => opt.MapFrom<GetAlbumOfSongResolver>()).ReverseMap();
 
             //Albums
-            CreateMap<Album, AlbumViewResModel>().ReverseMap();
+            CreateMap<Album, AlbumViewResModel>()
+                .ForMember(dest => dest.PublishYear, opt => opt.MapFrom(src => src.ReleaseDate != null ? src.ReleaseDate : null))
+                .ReverseMap();
 
-            CreateMap<Album, AlbumSongViewResModel>().ReverseMap();
+            CreateMap<Album, AlbumSongViewResModel>()
+                .ForMember(dest => dest.PublishYear, opt => opt.MapFrom(src => src.ReleaseDate != null ? src.ReleaseDate : null))
+                .ReverseMap();
 
 
             //Artist

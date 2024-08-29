@@ -34,5 +34,10 @@ namespace Repositories.ListeningHistoryRepos
                 .Take(sizeIndex)
                 .ToListAsync();
         }
+
+        public async Task<ListeningHistory> GetListeningHistoryByUserIdAndSongId(int userId, int songId)
+        {
+            return await _context.ListeningHistories.Where(x => x.UserId == userId && x.SongId == songId).FirstOrDefaultAsync();
+        }
     }
 }

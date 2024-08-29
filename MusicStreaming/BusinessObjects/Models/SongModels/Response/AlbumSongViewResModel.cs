@@ -17,6 +17,8 @@ namespace BusinessObjects.Models.SongModels.Response
 
         public string Genre { get; set; }
 
+        public DateOnly PublishYear { get; set; }
+
         public List<SongsResModel> Songs { get; set; }
     }
 }

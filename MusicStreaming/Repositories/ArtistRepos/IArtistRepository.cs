@@ -13,5 +13,6 @@ namespace Repositories.ArtistRepos
         Task<Artist> GetArtistByUserId(int userId);
         Task<Artist> GetArtist(int artistId);
         Task<List<Artist>> GetArtists(int? page, int?size);
+        Task<List<Artist>> SearchByArtistName(string artistName, int? page, int?size);
     }
 }

@@ -11,8 +11,10 @@ using Repositories.AlbumSongsRepo;
 using Repositories.ArtistRepos;
 using Repositories.ArtistSongRepos;
 using Repositories.ListeningHistoryRepos;
+using Repositories.OtpRepos;
 using Repositories.PlayListRepos;
 using Repositories.PlaylistSongRepos;
+using Repositories.RefreshTokenRepos;
 using Repositories.SongRepos;
 using Repositories.UserFavoriteRepos;
 using Repositories.UserRepos;
@@ -25,7 +27,9 @@ using Services.EmailService;
 using Services.FileServices;
 using Services.Helper.Handler.MapperProfiles;
 using Services.Helpers.Handler.DecodeTokenHandler;
+using Services.OTPServices;
 using Services.PlaylistServices;
+using Services.RefreshTokenServices;
 using Services.SongServices;
 using Services.UserServices;
 using System.Text;
@@ -52,6 +56,8 @@ builder.Services.AddScoped<ISongRepository, SongRepository>();
 builder.Services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IArtistSongRepository, ArtistSongRepository>();
+builder.Services.AddScoped<IOTPRepository, OTPRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 //-----------------------------------------SERVICES-----------------------------------------
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -65,6 +71,8 @@ builder.Services.AddScoped<IPlayListService, PlaylistService>();
 builder.Services.AddScoped<IDecodeTokenHandler, DecodeTokenHandler>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddScoped<IOTPService, OTPService>();
 builder.Services.AddDbContext<MusicStreamingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

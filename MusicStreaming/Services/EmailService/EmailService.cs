@@ -49,7 +49,7 @@ namespace Services.EmailService
             throw new NotImplementedException();
         }
 
-        public async Task SendUserResetPassword(string fullName, string userEmail, string OTP, EmailSendingFormat sendingFormat)
+        public async Task SendUserResetPassword(string fullName, string userEmail, string OTP)
         {
             // Create the email message
             var email = new MimeMessage();
@@ -77,7 +77,7 @@ namespace Services.EmailService
                 <p>This OTP is valid for a limited time. Please use it as soon as possible.</p>
                 <p>If you did not request a password reset, please ignore this email.</p>
                 <p>Thank you,</p>
-                <p>The FAMS Team</p>
+                <p>The Music_streaming Team</p>
             </div>
         </body>
         </html>"

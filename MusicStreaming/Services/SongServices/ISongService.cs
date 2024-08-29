@@ -49,8 +49,13 @@ namespace Services.SongServices
         Task<ResultModel> UpdateSong(SongUpdateReqModel songCreateReq, string token);
 
         Task<ResultModel> RemoveSong(int songId, string token);
-        Task<ResultModel> Search(string searchValue, int? page, int? size);
+
+        Task<ResultModel> Search(string searchValue, string filter, int? page, int? size);
+
         Task<ResultModel> PlaySong(int songId, string token);
-        Task<ResultModel> PauseSong(int songId, string token);
+
+        Task<ResultModel> PauseSong(PauseSongReqModel pauseSongReqModel, string token);
+
+        Task<ResultModel> ReplaySong(int songId, string token);
     }
 }

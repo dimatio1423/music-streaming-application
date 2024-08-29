@@ -27,35 +27,26 @@ namespace MusicStreamingAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAlbums([FromQuery] int? page = 1, [FromQuery] int? size = 10)
         {
-            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
-
             var result = await _albumService.GetAlbums(page, size);
             return StatusCode(result.Code, result);
         }
 
         [HttpGet]
         [Route("artist/{artistId}")]
-        [Authorize]
         public async Task<IActionResult> GetAlbumsByArtist([FromRoute] int artistId, 
             [FromQuery] int? page = 1, [FromQuery] int? size = 10)
         {
-            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
-
             var result = await _albumService.GetAlbumsByArtist(artistId, page, size);
             return StatusCode(result.Code, result);
         }
 
         [HttpGet]
         [Route("genre")]
-        [Authorize]
         public async Task<IActionResult> GetAlbumsByGenre([FromQuery] string genre = "Pop",
             [FromQuery] int? page = 1, [FromQuery] int? size = 10)
         {
-            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
-
             var result = await _albumService.GetAlbumsByGenre(genre, page, size);
             return StatusCode(result.Code, result);
         }

@@ -261,5 +261,31 @@ namespace MusicStreamingAPI.Controllers
             var result = await _songService.RemoveSong(songId, token);
             return StatusCode(result.Code, result);
         }
+
+        [HttpPost]
+        [Route("play/{songId}")]
+        [Authorize]
+        public async Task<IActionResult> PlaySong(
+           [FromRoute] int songId)
+        {
+
+            var token =  Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _songService.PlaySong(songId, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("pause/{songId}")]
+        [Authorize]
+        public async Task<IActionResult> PauseSong(
+           [FromBody] PauseSongReqModel pauseSongReqModel)
+        {
+
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _songService.PauseSong(pauseSongReqModel, token);
+            return StatusCode(result.Code, result);
+        }
     }
 }

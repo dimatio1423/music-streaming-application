@@ -21,6 +21,7 @@ namespace Repositories.AlbumRepos
         Task<List<Album>> GetRecommendAlbumsForUser(int userId, int? page, int? size);
 
         Task<List<Album>> GetAlbumsByAlbumIds(List<int> albumIds);
+        Task<List<Album>> SearchByAlbumName(string albumName, int? page, int? size);
         Task<Album> GetAlbumsByAlbumId(int albumId);
     }
 }

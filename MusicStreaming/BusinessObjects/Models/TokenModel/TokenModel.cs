@@ -13,6 +13,7 @@ namespace BusinessObjects.Models.TokenModel
         public string roleName { get; set; }
 
         public string email { get; set; }
+
         public TokenModel(string userid, string roleName, string email)
         {
             this.userid = userid;

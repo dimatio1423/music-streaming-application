@@ -11,5 +11,6 @@ namespace Repositories.PlayListRepos
     public interface IPlaylistRepository : IGenericRepository<Playlist>
     {
         Task<List<Playlist>> GetPlaylistsByUserId(int userId, int? page, int? size);
+        Task<List<Playlist>> SearchPlaylistByName(string playlistName, int? page, int? size);
     }
 }

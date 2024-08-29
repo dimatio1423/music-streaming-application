@@ -1,4 +1,5 @@
 ﻿using BusinessObjects.Models.PasswordModel;
+using BusinessObjects.Models.RefreshTokenModel.Request;
 using BusinessObjects.Models.UserModels.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -51,6 +52,7 @@ namespace MusicStreamingAPI.Controllers
 
         [HttpPost]
         [Route("change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordReqModel changePasswordReq)
         {
 
@@ -60,15 +62,23 @@ namespace MusicStreamingAPI.Controllers
             return StatusCode(result.Code, result);
         }
 
-        //[HttpGet]
-        //[Route("reset-password")]
-        //public async Task<IActionResult> ResetPassword(ResetPasswordReqModel resetPasswordReq)
-        //{
+        [HttpPost]
+        [Route("logout")]
+        public async Task<IActionResult> Logout([FromBody] RefreshTokenReqModel refreshTokenReqModel)
+        {
+            var result = await _userService.Logout(refreshTokenReqModel);
+            return StatusCode(result.Code, result);
+        }
 
-        //    var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+        [HttpPost]
+        [Route("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordReqModel resetPasswordReq)
+        {
 
-        //    var result = await _userService.ResetPassword(resetPasswordReq, token);
-        //    return StatusCode(result.Code, result);
-        //}
+            //var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _userService.ResetPassword(resetPasswordReq);
+            return StatusCode(result.Code, result);
+        }
     }
 }

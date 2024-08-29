@@ -2,6 +2,8 @@
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using BusinessObjects.Models.AlbumModels.Response;
+using BusinessObjects.Models.ArtistModel.Response;
+using BusinessObjects.Models.PlaylistModels.Response;
 using BusinessObjects.Models.ResultModels;
 using BusinessObjects.Models.SongModels.Request;
 using BusinessObjects.Models.SongModels.Response;
@@ -103,7 +105,7 @@ namespace Services.SongServices
                     return result;
                 }
 
-                if (!currUser.Role.Equals(RoleEnums.Artist))
+                if (!currUser.Role.Equals(RoleEnums.Artist.ToString()))
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.Unauthorized;
@@ -199,7 +201,7 @@ namespace Services.SongServices
                     return result;
                 }
 
-                if (!currUser.Role.Equals(RoleEnums.Artist))
+                if (!currUser.Role.Equals(RoleEnums.Artist.ToString()))
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.Unauthorized;
@@ -802,6 +804,7 @@ namespace Services.SongServices
                 result.IsSuccess = false;
                 result.Code = (int)HttpStatusCode.BadRequest;
                 result.Message = "User does not exist";
+                return result;
             }
 
             try
@@ -824,9 +827,70 @@ namespace Services.SongServices
             return result;
         }
 
-        public Task<ResultModel> PauseSong(int songId, string token)
+        public async Task<ResultModel> PauseSong(PauseSongReqModel pauseSongReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Pause song successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                var currSong = await _songRepository.Get(pauseSongReqModel.SongId);
+                if (currSong == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Song does not exist";
+                    return result;
+                }
+
+                var checkSongExistingInHistoryOfUser = await _listeningHistoryRepository.GetListeningHistoryByUserIdAndSongId(currUser.UserId, currSong.SongId);
+
+                if (checkSongExistingInHistoryOfUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.BadRequest;
+                    result.Message = "Invalid song";
+                    return result;
+                }
+
+                if (pauseSongReqModel.PauseTime > currSong.Duration || !TimeOnly.TryParse(pauseSongReqModel.PauseTime.ToString(), out _))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.BadRequest;
+                    result.Message = "Invalid pause time";
+                    return result;
+
+                }
+
+                checkSongExistingInHistoryOfUser.LastPauseTime = pauseSongReqModel.PauseTime;
+
+                await _listeningHistoryRepository.Update(checkSongExistingInHistoryOfUser);
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
         public async Task<ResultModel> PlaySong(int songId, string token)
@@ -861,6 +925,23 @@ namespace Services.SongServices
                     result.Message = "Song does not exist";
                     return result;
                 }
+
+                var checkSongExistingInHistoryOfUser = await _listeningHistoryRepository.GetListeningHistoryByUserIdAndSongId(currUser.UserId, songId);
+
+                if (checkSongExistingInHistoryOfUser != null)
+                {
+                    return result;
+                }
+
+                ListeningHistory listeningHistory = new ListeningHistory
+                {
+                    UserId = currUser.UserId,
+                    SongId = currSong.SongId,
+                    PlayedAt = DateTime.Now,
+                    LastPauseTime = null,
+                };
+
+                await _listeningHistoryRepository.Insert(listeningHistory);
 
 
             }
@@ -899,7 +980,7 @@ namespace Services.SongServices
                     return result;
                 }
 
-                if (!currUser.Role.Equals(RoleEnums.Artist))
+                if (!currUser.Role.Equals(RoleEnums.Artist.ToString()))
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.Unauthorized;
@@ -1021,7 +1102,7 @@ namespace Services.SongServices
                     return result;
                 }
 
-                if (!currUser.Role.Equals(RoleEnums.Artist))
+                if (!currUser.Role.Equals(RoleEnums.Artist.ToString()))
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.Unauthorized;
@@ -1211,9 +1292,111 @@ namespace Services.SongServices
             return result;
         }
 
-        public Task<ResultModel> Search(string searchValue, int? page, int? size)
+        public async Task<ResultModel> ReplaySong(int songId, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Pause song successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                var currSong = await _songRepository.Get(songId);
+                if (currSong == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Song does not exist";
+                    return result;
+                }
+
+                var checkSongExistingInHistoryOfUser = await _listeningHistoryRepository.GetListeningHistoryByUserIdAndSongId(currUser.UserId, currSong.SongId);
+
+                if (checkSongExistingInHistoryOfUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.BadRequest;
+                    result.Message = "Invalid song";
+                    return result;
+                }
+
+                checkSongExistingInHistoryOfUser.LastPauseTime = null;
+
+                await _listeningHistoryRepository.Update(checkSongExistingInHistoryOfUser);
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> Search(string searchValue, string filter, int? page, int? size)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Search information successfully"
+            };
+
+            try
+            {
+                switch(filter)
+                {
+                    case "Song":
+                        var songList = await _songRepository.SearchBySongName(searchValue, page, size);
+                        result.Data = songList.Count > 0 ? _mapper.Map<List<SongsResModel>>(songList) : [];
+                        result.Message = songList.Count > 0 ? "Search song information successfully" : "There is no result matches";
+                        break;
+                    case "Playlist":
+                        var playslists = await _playlistRepository.SearchPlaylistByName(searchValue, page, size);
+                        result.Data = playslists.Count > 0 ? _mapper.Map<List<PlaylistViewResModel>>(playslists) : [];
+                        result.Message = playslists.Count > 0 ? "Search playlist information successfully" : "There is no result matches";
+                        break;
+                    case "Artist":
+                        var artistList = await _artistRepository.SearchByArtistName(searchValue, page, size);
+                        result.Data = artistList.Count > 0 ? _mapper.Map<List<ArtistViewResModel>>(artistList) : [];
+                        result.Message = artistList.Count > 0 ? "Search artist information successfully" : "There is no result matches";
+                        break;
+                    case "Album":
+                        var albumList =  await _albumRepository.SearchByAlbumName(searchValue, page, size);
+                        result.Data = albumList.Count > 0 ? _mapper.Map<List<AlbumViewResModel>>(albumList) : [];
+                        result.Message = albumList.Count > 0 ? "Search album information successfully" : "There is no result matches";
+                        break;
+                    default:
+                        result.Message = "Invalid search filter";
+                        break;
+                }
+
+            }catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+
         }
 
         public async Task<ResultModel> UpdateSong(SongUpdateReqModel songUpdateReq, string token)
@@ -1240,7 +1423,7 @@ namespace Services.SongServices
                     return result;
                 }
 
-                if (!currUser.Role.Equals(RoleEnums.Artist))
+                if (!currUser.Role.Equals(RoleEnums.Artist.ToString()))
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.Unauthorized;

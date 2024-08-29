@@ -12,5 +12,6 @@ namespace Repositories.ListeningHistoryRepos
     {
         public Task<List<ListeningHistory>> GetListeningHistoriesByUser(int userId, int? page, int? size);
         public Task<List<ListeningHistory>> GetListeningHistoriesBySongId(int songId);
+        public Task<ListeningHistory> GetListeningHistoryByUserIdAndSongId(int userId, int songId);
     }
 }

@@ -10,7 +10,7 @@ namespace BusinessObjects.Models.PasswordModel
     public class ResetPasswordReqModel
     {
         [Required(ErrorMessage ="OTP is required")]
-        public int OTP { get; set; }
+        public string OTP { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
         [RegularExpression("^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{6,12}$",
@@ -19,7 +19,11 @@ namespace BusinessObjects.Models.PasswordModel
         public string NewPassword { get; set; }
 
         [Required(ErrorMessage = "Confirm Password is required")]
-        [Compare("NewPassword", ErrorMessage = "NewPassword do not match")]
+        [Compare("NewPassword", ErrorMessage = "New Password does not match")]
         public string ConfirmNewPassword { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address format")]
+        public string Email { get; set; }
     }
 }

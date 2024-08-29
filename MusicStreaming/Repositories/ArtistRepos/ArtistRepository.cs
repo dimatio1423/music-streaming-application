@@ -63,5 +63,27 @@ namespace Repositories.ArtistRepos
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<Artist>> SearchByArtistName(string artistName, int? page, int? size)
+        {
+            try
+            {
+                var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
+                var sizeIndex = (size.HasValue && size > 0) ? size.Value : 10;
+
+                return await _context.Artists
+                    .Include(x => x.User)
+                    .Include(x => x.Albums)
+                        .Where(x => x.Name.ToLower().Contains(artistName.ToLower()))
+                       .Skip((pageIndex - 1) * sizeIndex)
+                       .Take(sizeIndex)
+                       .ToListAsync();
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

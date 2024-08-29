@@ -25,7 +25,11 @@ public partial class User
 
     public virtual ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
 
+    public virtual ICollection<OtpCode> OtpCodes { get; set; } = new List<OtpCode>();
+
     public virtual ICollection<Playlist> Playlists { get; set; } = new List<Playlist>();
+
+    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     public virtual ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
 

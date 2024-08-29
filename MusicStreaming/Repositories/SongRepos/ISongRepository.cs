@@ -23,5 +23,7 @@ namespace Repositories.SongRepos
 
         Task<List<Song>> GetUserListeningHisotry(List<int> songIds, int? page, int? size);
         Task<List<Song>> GetRecommendSongsForUser(int userId, int? page, int? size);
-    }
+
+        Task<List<Song>> SearchBySongName(string songName, int? page, int? size);
+     }
 }

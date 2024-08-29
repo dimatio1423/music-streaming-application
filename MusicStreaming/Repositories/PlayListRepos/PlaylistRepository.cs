@@ -28,5 +28,24 @@ namespace Repositories.PlayListRepos
                 .Take(sizeIndex)
                 .ToListAsync();
         }
+
+        public async Task<List<Playlist>> SearchPlaylistByName(string playlistName, int? page, int? size)
+        {
+
+            try
+            {
+                var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
+                var sizeIndex = (size.HasValue && size > 0) ? size.Value : 10;
+
+                return await _context.Playlists.Include(x => x.User).Where(x => x.Title.ToLower().Contains(playlistName.ToLower()))
+                       .Skip((pageIndex - 1) * sizeIndex)
+                       .Take(sizeIndex)
+                       .ToListAsync();
+
+            }catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

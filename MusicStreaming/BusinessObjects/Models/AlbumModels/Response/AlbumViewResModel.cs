@@ -16,5 +16,7 @@ namespace BusinessObjects.Models.AlbumModels.Response
         public string Title { get; set; } = null!;
 
         public string Genre { get; set; }
+
+        public DateOnly PublishYear { get; set; }
     }
 }

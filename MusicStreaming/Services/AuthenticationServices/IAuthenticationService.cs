@@ -12,6 +12,7 @@ namespace Services.AuthenticationServices
     public interface IAuthenticationService
     {
         string GenerateJWT(User User);
+        string GenerateRefreshToken();
         string decodeToken(string jwtToken, string nameClaim);
     }
 }

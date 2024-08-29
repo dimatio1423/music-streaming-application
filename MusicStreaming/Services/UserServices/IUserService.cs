@@ -1,5 +1,6 @@
 ﻿using BusinessObjects.Models.ArtistModel.Request;
 using BusinessObjects.Models.PasswordModel;
+using BusinessObjects.Models.RefreshTokenModel.Request;
 using BusinessObjects.Models.ResultModels;
 using BusinessObjects.Models.UserModels.Request;
 using System;
@@ -15,9 +16,10 @@ namespace Services.UserServices
         Task<ResultModel> Register(UserRegisterReqModel userRegisterReqModel);
         Task<ResultModel> RegisterArtist(ArtistRegisterReqModel artistRegisterReqModel);
         Task<ResultModel> Login(UserLoginReqModel userLoginModel);
+        Task<ResultModel> Logout(RefreshTokenReqModel refreshTokenReqModel);
         Task<ResultModel> ChangePassword(ChangePasswordReqModel changePasswordReq, string token);
         Task<ResultModel> ForgotPassword(string email);
-        Task<ResultModel> ResetPassword(ResetPasswordReqModel resetPasswordReq,string token);
+        Task<ResultModel> ResetPassword(ResetPasswordReqModel resetPasswordReq);
         Task<ResultModel> ViewUserProfile(string token);
         Task<ResultModel> UpdateUserProfile(UserUpdateProfileReqModel userUpdateProfileReq, string token);
     }
