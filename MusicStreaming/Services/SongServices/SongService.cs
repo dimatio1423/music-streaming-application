@@ -401,7 +401,7 @@ namespace Services.SongServices
                 {
                     UserId = currUser.UserId,
                     SongId = currSong.SongId,
-                    AddedAt = DateTime.Now,
+                    AddedAt = DateTime.UtcNow,
                 };
 
                 await _userFavoriteRepository.Insert(userFavorite);

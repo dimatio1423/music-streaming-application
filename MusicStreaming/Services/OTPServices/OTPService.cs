@@ -33,9 +33,9 @@ namespace Services.OTPServices
 
             if (latestOTP != null)
             {
-                if ((DateTime.Now - latestOTP.CreatedAt).TotalMinutes < 2)
+                if ((DateTime.UtcNow - latestOTP.CreatedAt).TotalMinutes < 2)
                 {
-                    throw new Exception($"Cannot send new OTP right now, please wait for {(120 - (DateTime.Now - latestOTP.CreatedAt).TotalSeconds).ToString("0.00")} second(s)");
+                    throw new Exception($"Cannot send new OTP right now, please wait for {(120 - (DateTime.UtcNow - latestOTP.CreatedAt).TotalSeconds).ToString("0.00")} second(s)");
                 }
             }
 
@@ -44,7 +44,7 @@ namespace Services.OTPServices
             OtpCode otpCode = new OtpCode
             {
                 OptCode = newOTP,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 UserId = currUser.UserId,
                 IsUsed = false,
             };
@@ -76,7 +76,7 @@ namespace Services.OTPServices
 
             if (latestOTP != null)
             {
-                if ((DateTime.Now - latestOTP.CreatedAt).TotalMinutes > 30 || latestOTP.IsUsed)
+                if ((DateTime.UtcNow - latestOTP.CreatedAt).TotalMinutes > 30 || latestOTP.IsUsed)
                 {
                     throw new Exception("The OTP is already used or expired");
                 }

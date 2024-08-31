@@ -54,7 +54,7 @@ namespace Services.AuthenticationServices
                 issuer: _config["JwtSettings:Issuer"],
                 audience: _config["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.UtcNow.AddSeconds(10),
                 signingCredentials: credential
                 );
             var encodetoken = new JwtSecurityTokenHandler().WriteToken(token);

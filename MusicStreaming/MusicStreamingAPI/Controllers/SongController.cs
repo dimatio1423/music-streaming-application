@@ -19,10 +19,9 @@ namespace MusicStreamingAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAllSongs([FromQuery] int? page = 1, [FromQuery] int? size = 10)
         {
-            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+            //var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
             var result = await _songService.GetSongs(page, size);
             return StatusCode(result.Code, result);
