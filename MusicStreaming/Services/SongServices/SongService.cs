@@ -401,7 +401,7 @@ namespace Services.SongServices
                 {
                     UserId = currUser.UserId,
                     SongId = currSong.SongId,
-                    AddedAt = DateTime.UtcNow,
+                    AddedAt = DateTime.Now,
                 };
 
                 await _userFavoriteRepository.Insert(userFavorite);
@@ -1349,7 +1349,8 @@ namespace Services.SongServices
             return result;
         }
 
-        public async Task<ResultModel> Search(string searchValue, string filter, int? page, int? size)
+        // Cần xem thêm
+        public async Task<ResultModel> Search(string searchValue, string searchBy, int? page, int? size)
         {
             var result = new ResultModel
             {
@@ -1360,7 +1361,7 @@ namespace Services.SongServices
 
             try
             {
-                switch(filter)
+                switch(searchBy)
                 {
                     case "Song":
                         var songList = await _songRepository.SearchBySongName(searchValue, page, size);

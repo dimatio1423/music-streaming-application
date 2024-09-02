@@ -21,11 +21,15 @@ public partial class User
 
     public string? ImagePath { get; set; }
 
+    public string? Status { get; set; }
+
     public virtual ICollection<Artist> Artists { get; set; } = new List<Artist>();
 
     public virtual ICollection<ListeningHistory> ListeningHistories { get; set; } = new List<ListeningHistory>();
 
     public virtual ICollection<OtpCode> OtpCodes { get; set; } = new List<OtpCode>();
+
+    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
     public virtual ICollection<Playlist> Playlists { get; set; } = new List<Playlist>();
 

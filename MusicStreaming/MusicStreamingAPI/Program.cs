@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MusicStreamingAPI.MiddleWare;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
 using Repositories;
 using Repositories.AlbumRepos;
@@ -16,12 +17,18 @@ using Repositories.PlayListRepos;
 using Repositories.PlaylistSongRepos;
 using Repositories.RefreshTokenRepos;
 using Repositories.SongRepos;
+using Repositories.SubscriptionRepos;
+using Repositories.SubscriptionUserRepos;
 using Repositories.UserFavoriteRepos;
+using Repositories.UserQueueRepos;
 using Repositories.UserRepos;
+using Services.AdminServices;
 using Services.AlbumServices;
 using Services.ArtistServices;
 using Services.ArtistSongServices;
 using Services.AuthenticationServices;
+using Services.AWSService;
+using Services.AWSServices;
 using Services.CloudinaryService;
 using Services.EmailService;
 using Services.FileServices;
@@ -31,6 +38,7 @@ using Services.OTPServices;
 using Services.PlaylistServices;
 using Services.RefreshTokenServices;
 using Services.SongServices;
+using Services.SubscriptionServices;
 using Services.UserServices;
 using System.Text;
 
@@ -45,6 +53,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddAutoMapper(typeof(MapperProfiles).Assembly);
 
+//========================================== MIDDLEWARE ===========================================
+
+//builder.Services.AddSingleton<GlobalExceptionMiddleware>();
+
 //-----------------------------------------REPOSITORIES-----------------------------------------
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IAlbumSongRepository, AlbumSongRepository>();
@@ -58,6 +70,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IArtistSongRepository, ArtistSongRepository>();
 builder.Services.AddScoped<IOTPRepository, OTPRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
+builder.Services.AddScoped<IUserQueueRepository, UserQueueRepository>();
 
 //-----------------------------------------SERVICES-----------------------------------------
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -70,9 +85,13 @@ builder.Services.AddScoped<IAlbumService, AlbumService>();
 builder.Services.AddScoped<IPlayListService, PlaylistService>();
 builder.Services.AddScoped<IDecodeTokenHandler, DecodeTokenHandler>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IAWSService, AWSService>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<IOTPService, OTPService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+
 builder.Services.AddDbContext<MusicStreamingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -161,6 +180,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+
+//app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseAuthentication();
 

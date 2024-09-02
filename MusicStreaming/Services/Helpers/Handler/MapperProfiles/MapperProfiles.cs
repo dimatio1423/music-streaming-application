@@ -4,6 +4,7 @@ using BusinessObjects.Models.AlbumModels.Response;
 using BusinessObjects.Models.ArtistModel.Response;
 using BusinessObjects.Models.PlaylistModels.Response;
 using BusinessObjects.Models.SongModels.Response;
+using BusinessObjects.Models.SubscriptionModel.Response;
 using BusinessObjects.Models.UserModels.Response;
 using Services.Helpers.Resolvers.SongsResolver;
 using System;
@@ -53,6 +54,9 @@ namespace Services.Helper.Handler.MapperProfiles
             //Playlists
             CreateMap<Playlist, PlaylistViewResModel>().ReverseMap();
 
+            //Subscription
+            CreateMap<Subscription, SubscriptionViewResModel>().ReverseMap();
+                
         }
     }
 }

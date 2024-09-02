@@ -24,6 +24,11 @@ namespace Repositories.ListeningHistoryRepos
             return await _context.ListeningHistories.Where(x => x.SongId == songId).ToListAsync();
         }
 
+        public async Task<List<ListeningHistory>> GetListeningHistoriesBySongIds(List<int> songIds)
+        {
+            return await _context.ListeningHistories.Where(x => songIds.Contains((int)x.SongId)).ToListAsync();
+        }
+
         public async Task<List<ListeningHistory>> GetListeningHistoriesByUser(int userId, int? page, int? size)
         {
             var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
@@ -32,6 +37,12 @@ namespace Repositories.ListeningHistoryRepos
             return await _context.ListeningHistories.Where(x => x.UserId == userId)
                 .Skip((pageIndex - 1) * sizeIndex)
                 .Take(sizeIndex)
+                .ToListAsync();
+        }
+
+        public async Task<List<ListeningHistory>> GetListeningHistoriesByUser(int userId)
+        {
+            return await _context.ListeningHistories.Where(x => x.UserId == userId)
                 .ToListAsync();
         }
 

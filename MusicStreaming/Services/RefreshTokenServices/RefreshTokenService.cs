@@ -48,7 +48,7 @@ namespace Services.RefreshTokenServices
                     return result;
                 }
 
-                if (currRefreshToken.ExpiredAt < DateTime.UtcNow)
+                if (currRefreshToken.ExpiredAt < DateTime.Now)
                 {
                     result.IsSuccess = false;
                     result.Code = (int)HttpStatusCode.BadRequest;
@@ -71,7 +71,7 @@ namespace Services.RefreshTokenServices
                 var newRefreshToken = _authenticationService.GenerateRefreshToken();
 
                 currRefreshToken.RefreshToken1 = newRefreshToken;
-                currRefreshToken.ExpiredAt = DateTime.UtcNow.AddDays(1);
+                currRefreshToken.ExpiredAt = DateTime.Now.AddDays(1);
                 await _refreshTokenRepository.Update(currRefreshToken);
 
 

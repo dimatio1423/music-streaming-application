@@ -29,6 +29,12 @@ namespace Repositories.PlayListRepos
                 .ToListAsync();
         }
 
+        public async Task<List<Playlist>> GetPlaylistsByUserId(int userId)
+        {
+            return await _context.Playlists.Include(x => x.User).Where(x => x.UserId == userId)
+                .ToListAsync();
+        }
+
         public async Task<List<Playlist>> SearchPlaylistByName(string playlistName, int? page, int? size)
         {
 

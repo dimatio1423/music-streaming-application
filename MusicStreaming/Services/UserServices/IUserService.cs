@@ -3,6 +3,7 @@ using BusinessObjects.Models.PasswordModel;
 using BusinessObjects.Models.RefreshTokenModel.Request;
 using BusinessObjects.Models.ResultModels;
 using BusinessObjects.Models.UserModels.Request;
+using BusinessObjects.Models.UserModels.Response;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,5 +23,7 @@ namespace Services.UserServices
         Task<ResultModel> ResetPassword(ResetPasswordReqModel resetPasswordReq);
         Task<ResultModel> ViewUserProfile(string token);
         Task<ResultModel> UpdateUserProfile(UserUpdateProfileReqModel userUpdateProfileReq, string token);
+        Task<ResultModel> ViewCurrentSubsctiptionOfUser(string token);
+        Task<ResultModel> ViewUserInfor(string token);
     }
 }

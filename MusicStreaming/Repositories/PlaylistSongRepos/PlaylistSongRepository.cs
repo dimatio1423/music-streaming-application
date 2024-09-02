@@ -54,5 +54,17 @@ namespace Repositories.PlaylistSongRepos
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<List<PlaylistSong>> GetPlaylistSongsBySongIds(List<int> songIds)
+        {
+            try
+            {
+                return await _context.PlaylistSongs.Where(x => songIds.Contains(x.SongId)).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

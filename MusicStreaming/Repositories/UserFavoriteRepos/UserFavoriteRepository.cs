@@ -28,6 +28,11 @@ namespace Repositories.UserFavoriteRepos
             return await _context.UserFavorites.Where(x => x.SongId == songId).ToListAsync();
         }
 
+        public async Task<List<UserFavorite>> GetUserFavoriteBySongIds(List<int> songId)
+        {
+            return await _context.UserFavorites.Where(x => songId.Contains(x.SongId)).ToListAsync();
+        }
+
         public async Task<List<UserFavorite>> GetUserFavorites(int userId, int? page, int? size)
         {
             var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
@@ -36,6 +41,12 @@ namespace Repositories.UserFavoriteRepos
             return await _context.UserFavorites.Where(x => x.UserId == userId)
                 .Skip((pageIndex - 1) * sizeIndex)
                 .Take(sizeIndex)
+                .ToListAsync();
+        }
+
+        public async Task<List<UserFavorite>> GetUserFavorites(int userId)
+        {
+            return await _context.UserFavorites.Where(x => x.UserId == userId)
                 .ToListAsync();
         }
     }

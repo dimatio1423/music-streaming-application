@@ -27,5 +27,23 @@ namespace Repositories.UserRepos
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Username.Equals(Username));
         }
+
+        public async Task<List<User>> SearchByUserName(string songName, int? page, int? size)
+        {
+            try
+            {
+                var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
+                var sizeIndex = (size.HasValue && size > 0) ? size.Value : 10;
+
+                return await _context.Users.Include(x => x.Artists).Where(x => x.Username.ToLower().Contains(songName.ToLower()))
+                    .Skip((pageIndex - 1) * sizeIndex)
+                    .Take(sizeIndex)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

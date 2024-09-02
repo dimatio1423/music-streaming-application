@@ -2,20 +2,24 @@
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
 using BusinessObjects.Models.ArtistModel.Request;
+using BusinessObjects.Models.ArtistModel.Response;
 using BusinessObjects.Models.PasswordModel;
 using BusinessObjects.Models.RefreshTokenModel.Request;
 using BusinessObjects.Models.ResultModels;
+using BusinessObjects.Models.SubscriptionModel.Response;
 using BusinessObjects.Models.UserModels;
 using BusinessObjects.Models.UserModels.Request;
 using BusinessObjects.Models.UserModels.Response;
 using CloudinaryDotNet.Actions;
 using Repositories.ArtistRepos;
 using Repositories.RefreshTokenRepos;
+using Repositories.SubscriptionUserRepos;
 using Repositories.UserRepos;
 using Services.AuthenticationServices;
 using Services.CloudinaryService;
 using Services.EmailService;
 using Services.FileServices;
+using Services.Helper.CustomExceptions;
 using Services.Helpers.Handler.DecodeTokenHandler;
 using Services.OTPServices;
 using Services.Security;
@@ -39,10 +43,12 @@ namespace Services.UserServices
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly IEmailService _emailService;
         private readonly IOTPService _otpService;
+        private readonly IUserSubscriptionRepository _userSubscriptionRepository;
         private readonly IMapper _mapper;
 
         public UserService(IUserRepository userRepository,
             IArtistRepository artistRepository,
+            IUserSubscriptionRepository userSubscriptionRepository,
             IAuthenticationService authenticationService,
             IDecodeTokenHandler decodeToken,
             IFileService fileService,
@@ -61,6 +67,7 @@ namespace Services.UserServices
             _refreshTokenRepository = refreshTokenRepository;
             _emailService = emailService;
             _otpService = otpService;
+            _userSubscriptionRepository = userSubscriptionRepository;
             _mapper = mapper;
         }
 
@@ -197,6 +204,8 @@ namespace Services.UserServices
                         };
 
                         result.Data = userLoginRes;
+
+                        //return userLoginRes;
                     }
                     else
                     {
@@ -204,6 +213,8 @@ namespace Services.UserServices
                         result.Code = (int)HttpStatusCode.BadRequest;
                         result.Message = "Incorrect password";
                         return result;
+                        //throw new ApiException(HttpStatusCode.BadRequest, "Incorrect password");
+
                     }
                 }
                 else
@@ -212,16 +223,15 @@ namespace Services.UserServices
                     result.Code = (int)HttpStatusCode.NotFound;
                     result.Message = "User does not exist";
                     return result;
+                    //throw new ApiException(HttpStatusCode.NotFound, "User does not exist");
                 }
-            }
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 result.IsSuccess = false;
                 result.Code = (int)HttpStatusCode.BadRequest;
                 result.Message = ex.Message;
                 return result;
             }
-
             return result;
         }
 
@@ -275,7 +285,8 @@ namespace Services.UserServices
                     Password = PasswordHasher.HashPassword(userRegisterReqModel.Password),
                     CreatedAt = DateTime.Now,
                     SubscriptionType = SubscriptionTypeEnums.Free.ToString(),
-                    Role = RoleEnums.User.ToString()
+                    Role = RoleEnums.User.ToString(),
+                    Status = StatusEnums.Active.ToString()
                 };
 
                 await _userRepository.Insert(newUser);
@@ -341,7 +352,8 @@ namespace Services.UserServices
                     Password = PasswordHasher.HashPassword(artistRegisterReqModel.Password),
                     CreatedAt = DateTime.Now,
                     SubscriptionType = null,
-                    Role = RoleEnums.Artist.ToString()
+                    Role = RoleEnums.Artist.ToString(),
+                    Status = StatusEnums.Active.ToString()
                 };
 
                 await _userRepository.Insert(newUser);
@@ -562,6 +574,108 @@ namespace Services.UserServices
                 await _refreshTokenRepository.Remove(currRefreshToken);
 
             }catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> ViewCurrentSubsctiptionOfUser(string token)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Get current user subscription successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                if (!currUser.Role.Equals(RoleEnums.User.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+
+                var currentSubscription = await _userSubscriptionRepository.GetUserSubscriptionsOfUser(currUser.UserId);
+
+                result.Data = _mapper.Map<List<SubscriptionViewResModel>>(currentSubscription);
+
+            }catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> ViewUserInfor(string token)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Get user successfully"
+            };
+
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                if (currUser.Role.Equals(RoleEnums.Artist.ToString()))
+                {
+                    var currArtist = await _artistRepository.GetArtistByUserId(currUser.UserId);
+                    if (currArtist == null)
+                    {
+                        result.IsSuccess = false;
+                        result.Code = (int)HttpStatusCode.NotFound;
+                        result.Message = "Artist does not exist";
+                        return result;
+                    }
+
+                    var artistInfo = _mapper.Map<ArtistViewResModel>(currArtist);
+
+                    result.Data = artistInfo;
+                    return result;
+                }
+
+                result.Data = _mapper.Map<UserViewResModel>(currUser);
+
+            }
+            catch (Exception ex)
             {
                 result.IsSuccess = false;
                 result.Code = (int)HttpStatusCode.BadRequest;

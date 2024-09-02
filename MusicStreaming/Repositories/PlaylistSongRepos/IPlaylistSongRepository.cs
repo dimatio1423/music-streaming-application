@@ -12,6 +12,7 @@ namespace Repositories.PlaylistSongRepos
     {
         Task<List<PlaylistSong>> GetPlaylistSongsByPlaylistId(int playlistId);
         Task<List<PlaylistSong>> GetPlaylistSongsBySongId(int songId);
+        Task<List<PlaylistSong>> GetPlaylistSongsBySongIds(List<int> songIds);
         Task<PlaylistSong> CheckSongExistingInPlaylist(int songId, int playlistId);
 
     }

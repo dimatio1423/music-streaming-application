@@ -29,6 +29,8 @@ public partial class MusicStreamingContext : DbContext
 
     public virtual DbSet<OtpCode> OtpCodes { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
     public virtual DbSet<Playlist> Playlists { get; set; }
 
     public virtual DbSet<PlaylistSong> PlaylistSongs { get; set; }
@@ -42,6 +44,8 @@ public partial class MusicStreamingContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     public virtual DbSet<UserFavorite> UserFavorites { get; set; }
+
+    public virtual DbSet<UserQueue> UserQueues { get; set; }
 
     public virtual DbSet<UserSubscription> UserSubscriptions { get; set; }
 
@@ -206,6 +210,29 @@ public partial class MusicStreamingContext : DbContext
                 .HasConstraintName("FK__OTPCode__Created__59FA5E80");
         });
 
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.PaymentId).HasName("PK__Payment__9B556A587F60558B");
+
+            entity.ToTable("Payment");
+
+            entity.Property(e => e.PaymentId).HasColumnName("PaymentID");
+            entity.Property(e => e.PayementDate).HasColumnType("datetime");
+            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.SubscriptionId).HasColumnName("SubscriptionID");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Subscription).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.SubscriptionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Payment__Subscri__662B2B3B");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Payments)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Payment__user_id__65370702");
+        });
+
         modelBuilder.Entity<Playlist>(entity =>
         {
             entity.HasKey(e => e.PlaylistId).HasName("PK__playlist__FB9C1410FF82A294");
@@ -310,6 +337,9 @@ public partial class MusicStreamingContext : DbContext
             entity.Property(e => e.Description).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Price).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false);
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -339,6 +369,10 @@ public partial class MusicStreamingContext : DbContext
             entity.Property(e => e.Role)
                 .HasDefaultValue("user")
                 .HasColumnName("role");
+            entity.Property(e => e.Status)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("status");
             entity.Property(e => e.SubscriptionType)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -371,6 +405,29 @@ public partial class MusicStreamingContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__user_favo__user___5535A963");
+        });
+
+        modelBuilder.Entity<UserQueue>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("user_queues");
+
+            entity.Property(e => e.AddedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("added_at");
+            entity.Property(e => e.SongId).HasColumnName("song_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+
+            entity.HasOne(d => d.Song).WithMany()
+                .HasForeignKey(d => d.SongId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__user_queu__song___756D6ECB");
+
+            entity.HasOne(d => d.User).WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__user_queu__added__74794A92");
         });
 
         modelBuilder.Entity<UserSubscription>(entity =>

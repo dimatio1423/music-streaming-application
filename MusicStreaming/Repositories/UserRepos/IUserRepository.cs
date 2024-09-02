@@ -12,5 +12,6 @@ namespace Repositories.UserRepos
     {
         Task<User> GetUserByEmail(string Email);
         Task<User> GetUserByUsername(string Username);
+        Task<List<User>> SearchByUserName(string songName, int? page, int? size);
     }
 }

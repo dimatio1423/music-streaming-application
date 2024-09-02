@@ -12,7 +12,7 @@ using TagLib;
 
 namespace Services.AWSServices
 {
-    internal class AWSService : IAWSService
+    public class AWSService : IAWSService
     {
         private readonly IAmazonS3 _amazonS3;
 
