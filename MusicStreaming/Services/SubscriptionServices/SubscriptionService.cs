@@ -254,21 +254,60 @@ namespace Services.SubscriptionServices
             return result;
         }
 
-        public async Task<ResultModel> ViewSubscription()
+        public async Task<ResultModel> ViewDetailsSubscription(int subscriptionId)
         {
             var result = new ResultModel
             {
                 IsSuccess = true,
                 Code = (int)HttpStatusCode.OK,
-                Message = "Update subscription successfully"
+                Message = "View details subscription successfully"
+            };
+
+            try
+            {
+                var subscriptions = await _subscriptionRepository.Get(subscriptionId);
+                result.Data = _mapper.Map<SubscriptionViewResModel>(subscriptions);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+
+            return result;
+        }
+
+        public async Task<ResultModel> ViewSubscription(string? filterBy)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "View subscriptions successfully"
             };
 
             try
             {
                 var subscriptions = await _subscriptionRepository.GetAll(null, null);
-                result.Data = _mapper.Map<List<SubscriptionViewResModel>>(subscriptions.Select(x => x.Status.Equals(StatusEnums.Active.ToString())).ToList());
 
-            }catch (Exception ex)
+                switch (filterBy)
+                {
+                    case "Active":
+                        result.Data = _mapper.Map<List<SubscriptionViewResModel>>(subscriptions.Select(x => x.Status.Equals(StatusEnums.Active.ToString())).ToList());
+                        break;
+                    case "Inactive":
+                        result.Data = _mapper.Map<List<SubscriptionViewResModel>>(subscriptions.Select(x => x.Status.Equals(StatusEnums.Inactive.ToString())).ToList());
+                        break;
+                    default:
+                        result.Data = _mapper.Map<List<SubscriptionViewResModel>>(subscriptions);
+                        break;
+                }
+            }
+            catch (Exception ex)
             {
                 result.IsSuccess = false;
                 result.Code = (int)HttpStatusCode.BadRequest;

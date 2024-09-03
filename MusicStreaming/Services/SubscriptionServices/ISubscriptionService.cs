@@ -10,7 +10,8 @@ namespace Services.SubscriptionServices
 {
     public interface ISubscriptionService
     {
-        Task<ResultModel> ViewSubscription();
+        Task<ResultModel> ViewSubscription(string? filterBy);
+        Task<ResultModel> ViewDetailsSubscription(int subscriptionId);
         Task<ResultModel> AddNewSubscription(SubscriptionAddReqModel subscriptionAddReqModel, string token);
         Task<ResultModel> UpdateSubscription(SubscriptionUpdateReqModel subscriptionUpdateReqModel, string token);
         Task<ResultModel> DeleteSubscription(int subscriptionId, string token);

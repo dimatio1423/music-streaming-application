@@ -1,4 +1,7 @@
-﻿using BusinessObjects.Models.SubscriptionModel.Request;
+﻿using BusinessObjects.Models.AlbumModels.Request;
+using BusinessObjects.Models.ArtistModel.Request;
+using BusinessObjects.Models.SongModels.Request;
+using BusinessObjects.Models.SubscriptionModel.Request;
 using BusinessObjects.Models.UserModels.Request;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -45,14 +48,95 @@ namespace MusicStreamingAPI.Controllers
             return StatusCode(result.Code, result);
         }
 
+        [HttpPost]
+        [Route("song/view")]
+        [Authorize]
+        public async Task<IActionResult> ViewSongs(
+          [FromBody] SongViewReqModel songViewReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.ViewSongs(page, size, songViewReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("song/search")]
+        [Authorize]
+        public async Task<IActionResult> SearchSong(
+          [FromBody] SongSearchReqModel songSearchReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.SearchSongForAdmin(page, size, songSearchReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("album/view")]
+        [Authorize]
+        public async Task<IActionResult> ViewAlbums(
+         [FromBody] AlbumViewReqModel albumViewReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.ViewAlbums(page, size, albumViewReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("album/search")]
+        [Authorize]
+        public async Task<IActionResult> SearchAlbums(
+          [FromBody] AlbumSearchReqModel albumSearchReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.SearchAlbumForAdmin(page, size, albumSearchReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("artist/view")]
+        [Authorize]
+        public async Task<IActionResult> ViewArtists(
+        [FromBody] ArtistViewReqModel artistViewReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.ViewArtists(page, size, artistViewReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("artist/search")]
+        [Authorize]
+        public async Task<IActionResult> SearchArtist(
+          [FromBody] ArtistSearchReqModel artistSearchReqModel, [FromQuery] int? page = 1, int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _adminService.SearchArtistForAdmin(page, size, artistSearchReqModel, token);
+            return StatusCode(result.Code, result);
+        }
+
         [HttpGet]
         [Route("subscription")]
-        [Authorize]
-        public async Task<IActionResult> ViewSubscriptions()
+        public async Task<IActionResult> ViewSubscriptions(string? filterBy)
         {
             //var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
-            var result = await _subscriptionService.ViewSubscription();
+            var result = await _subscriptionService.ViewSubscription(filterBy);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpGet]
+        [Route("subscription/{subscriptionId}")]
+        public async Task<IActionResult> ViewDetailsSubscription(int subscriptionId)
+        {
+            //var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _subscriptionService.ViewDetailsSubscription(subscriptionId);
             return StatusCode(result.Code, result);
         }
 

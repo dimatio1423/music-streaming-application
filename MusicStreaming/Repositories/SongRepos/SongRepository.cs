@@ -103,6 +103,7 @@ namespace Repositories.SongRepos
                 var sizeIndex = (size.HasValue && size > 0) ? size.Value : 10;
 
                     return await _context.Songs
+                    .Include(x => x.ArtistSongs).ThenInclude(x => x.Artist)
                         .Skip((pageIndex - 1) * sizeIndex).Take(sizeIndex).ToListAsync();
                 
             }
@@ -248,7 +249,9 @@ namespace Repositories.SongRepos
                 var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;
                 var sizeIndex = (size.HasValue && size > 0) ? size.Value : 10;
 
-                return await _context.Songs.Include(x => x.AlbumSongs).Where(x => x.Title.ToLower().Contains(songName.ToLower()))
+                return await _context.Songs
+                    .Include(x => x.ArtistSongs).ThenInclude(x => x.Artist)
+                    .Include(x => x.AlbumSongs).Where(x => x.Title.ToLower().Contains(songName.ToLower()))
                     .Skip((pageIndex - 1) * sizeIndex)
                     .Take(sizeIndex)
                     .ToListAsync();

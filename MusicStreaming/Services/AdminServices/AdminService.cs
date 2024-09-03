@@ -1,7 +1,13 @@
 ﻿using AutoMapper;
 using BusinessObjects.Entities;
 using BusinessObjects.Enums;
+using BusinessObjects.Models.AlbumModels.Request;
+using BusinessObjects.Models.AlbumModels.Response;
+using BusinessObjects.Models.ArtistModel.Request;
+using BusinessObjects.Models.ArtistModel.Response;
 using BusinessObjects.Models.ResultModels;
+using BusinessObjects.Models.SongModels.Request;
+using BusinessObjects.Models.SongModels.Response;
 using BusinessObjects.Models.UserModels.Request;
 using BusinessObjects.Models.UserModels.Response;
 using Repositories.AlbumRepos;
@@ -257,19 +263,187 @@ namespace Services.AdminServices
             return result;
         }
 
-        public Task<ResultModel> SearchAlbumForAdmin(int? page, int? size, string searchBy, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> SearchAlbumForAdmin(int? page, int? size, AlbumSearchReqModel albumSearchReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Search albums successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var albums = await _albumRepository.GetAlbums(page, size);
+
+                if (!string.IsNullOrEmpty(albumSearchReqModel.searchValue))
+                {
+                    albums = await _albumRepository.SearchByAlbumName(albumSearchReqModel.searchValue, page, size);
+                }
+
+                albums = FilterFeatureForViewAlbum(albums, new AlbumViewReqModel
+                {
+                    ArtistName = albumSearchReqModel.ArtistName,
+                    Genre = albumSearchReqModel.Genre,
+                    StartDate = albumSearchReqModel.StartDate,
+                    EndDate = albumSearchReqModel.EndDate
+                });
+
+                albums = SortFeatureForViewAlbum(albums, albumSearchReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<AlbumViewResModel>>(albums);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
-        public Task<ResultModel> SearchArtistForAdmin(int? page, int? size, string searchBy, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> SearchArtistForAdmin(int? page, int? size, ArtistSearchReqModel artistSearchReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Search artist successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var artists = await _artistRepository.GetArtists(page, size);
+
+                if (!string.IsNullOrEmpty(artistSearchReqModel.searchValue))
+                {
+                    artists = await _artistRepository.SearchByArtistName(artistSearchReqModel.searchValue, page, size);
+                }
+
+                artists = FilterFeatureForViewArtist(artists, new ArtistViewReqModel{
+                    StartDate = artistSearchReqModel.StartDate,
+                    EndDate = artistSearchReqModel.EndDate
+                });
+
+                artists = SortFeatureForViewArtist(artists, artistSearchReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<ArtistViewResModel>>(artists);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
-        public Task<ResultModel> SearchSongForAdmin(int? page, int? size, string searchBy, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> SearchSongForAdmin(int? page, int? size, SongSearchReqModel songSearchReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Search song successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var songs = await _songRepository.GetSongs(page, size);
+
+                if (!string.IsNullOrEmpty(songSearchReqModel.searchValue))
+                {
+                    songs = await _songRepository.SearchBySongName(songSearchReqModel.searchValue, page, size);
+                }
+
+                songs = FilterFeatureForViewSong(songs, new SongViewReqModel
+                {
+                    ArtistName = songSearchReqModel.ArtistName,
+                    Status = songSearchReqModel.Status,
+                    StartDate = songSearchReqModel.StartDate,
+                    EndDate = songSearchReqModel.EndDate,
+                });
+
+                songs = SortFeatureForViewSong(songs, songSearchReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<SongsResModel>>(songs);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
         public async Task<ResultModel> SearchUserForAdmin(int? page, int? size, UserSearchReqModel userSearchReqModel, string token)
@@ -321,7 +495,7 @@ namespace Services.AdminServices
 
                 users = SortFeatureForViewUser(users, userSearchReqModel.sortBy);
 
-                result.Data = _mapper.Map<UserViewResModel>(users);
+                result.Data = _mapper.Map<List<UserViewResModel>>(users);
 
             }
             catch (Exception ex)
@@ -335,24 +509,157 @@ namespace Services.AdminServices
             return result;
         }
 
-        public Task<ResultModel> ViewAlbums(int? page, int? size, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> ViewAlbums(int? page, int? size, AlbumViewReqModel albumViewReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "View albums successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var albums = await _albumRepository.GetAlbums(page, size);
+
+                albums = FilterFeatureForViewAlbum(albums, albumViewReqModel);
+
+                albums = SortFeatureForViewAlbum(albums, albumViewReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<AlbumViewResModel>>(albums);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
-        public Task<ResultModel> ViewArtists(int? page, int? size, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> ViewArtists(int? page, int? size, ArtistViewReqModel artistViewReqModel, string token)
         {
-            throw new NotImplementedException();
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "View artists successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+                
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var artists = await _artistRepository.GetArtists(page, size);
+
+                artists = FilterFeatureForViewArtist(artists, artistViewReqModel);
+
+                artists = SortFeatureForViewArtist(artists, artistViewReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<ArtistViewResModel>>(artists);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
-        public Task<ResultModel> ViewPlaylist(int? page, int? size, string? filterBy, string? sortBy, string token)
+        public async Task<ResultModel> ViewSongs(int? page, int? size, SongViewReqModel songViewReqModel, string token)
         {
-            throw new NotImplementedException();
-        }
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "View songs successfully"
+            };
 
-        public Task<ResultModel> ViewSongs(int? page, int? size, string? filterBy, string? sortBy, string token)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currAdmin = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currAdmin == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Admin does not exist";
+                    return result;
+                }
+
+                if (!currAdmin.Role.Equals(RoleEnums.Admin.ToString()))
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Do not have permission to perform this function";
+                    return result;
+                }
+
+                var songs = await _songRepository.GetSongs(page, size);
+
+                songs = FilterFeatureForViewSong(songs, songViewReqModel);
+
+                songs = SortFeatureForViewSong(songs, songViewReqModel.sortBy);
+
+                result.Data = _mapper.Map<List<SongsResModel>>(songs);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
         }
 
         public async Task<ResultModel> ViewUsers(int? page, int? size, UserViewReqModel userViewReqModel, string token)
@@ -392,7 +699,7 @@ namespace Services.AdminServices
 
                 users = SortFeatureForViewUser(users, userViewReqModel.sortBy);
 
-                result.Data = _mapper.Map<UserViewResModel>(users);
+                result.Data = _mapper.Map<List<UserViewResModel>>(users);
 
             }
             catch (Exception ex)
@@ -453,6 +760,145 @@ namespace Services.AdminServices
                     break;
                 default:
                     list = list.OrderBy(x => x.Username).ToList();
+                    break;
+            }
+
+            return list;
+        }
+
+        public List<Album> FilterFeatureForViewAlbum(List<Album> list, AlbumViewReqModel albumViewReqModel)
+        {
+            if (albumViewReqModel.ArtistName is not null && albumViewReqModel.ArtistName.Any())
+            {
+                list = list.Where(x => albumViewReqModel.ArtistName.Contains(x.Artist.Name)).ToList();
+            }
+
+            if (albumViewReqModel.Genre is not null && albumViewReqModel.Genre.Any())
+            {
+                list = list.Where(x => albumViewReqModel.Genre.Contains(x.Genre)).ToList();
+            }
+
+            if (albumViewReqModel.StartDate != null && albumViewReqModel.EndDate != null)
+            {
+
+                list = list.Where(c => c.ReleaseDate >= albumViewReqModel.StartDate && c.ReleaseDate <= albumViewReqModel.EndDate).ToList();
+            }
+
+            return list;
+        }
+
+        public List<Album> SortFeatureForViewAlbum(List<Album> list, string sortBy)
+        {
+            switch (sortBy)
+            {
+                case "title_asc":
+                    list = list.OrderBy(x => x.Title).ToList();
+                    break;
+                case "title_desc":
+                    list = list.OrderByDescending(x => x.Title).ToList();
+                    break;
+                case "release_date_asc":
+                    list = list.OrderBy(x => x.ReleaseDate).ToList();
+                    break;
+                case "release_date_desc":
+                    list = list.OrderByDescending(x => x.ReleaseDate).ToList();
+                    break;
+                case "genre_asc":
+                    list = list.OrderBy(x => x.Genre).ToList();
+                    break;
+                case "genre_desc":
+                    list = list.OrderByDescending(x => x.Genre).ToList();
+                    break;
+                default:
+                    list = list.OrderBy(x => x.Title).ToList();
+                    break;
+            }
+
+            return list;
+        }
+
+        public List<Song> FilterFeatureForViewSong(List<Song> list, SongViewReqModel songViewReqModel)
+        {
+            if (songViewReqModel.ArtistName is not null && songViewReqModel.ArtistName.Any())
+            {
+                list = list.Where(x => x.ArtistSongs
+                           .Select(artist => artist.Artist.Name)
+                           .Any(artistName => songViewReqModel.ArtistName.Contains(artistName)))
+               .ToList();
+            }
+
+            if (songViewReqModel.StartDate is not null && songViewReqModel.Status.Any())
+            {
+                list = list.Where(x => songViewReqModel.Status.Contains(x.Status)).ToList();
+            }
+
+            if (songViewReqModel.StartDate != null && songViewReqModel.EndDate != null)
+            {
+                DateTime startDate = songViewReqModel.StartDate.Value.ToDateTime(TimeOnly.MinValue);
+                DateTime endDate = songViewReqModel.EndDate.Value.ToDateTime(TimeOnly.MinValue);
+
+                list = list.Where(c => c.CreatedAt >= startDate && c.CreatedAt <= endDate).ToList();
+            }
+
+            return list;
+        }
+
+        public List<Song> SortFeatureForViewSong(List<Song> list, string sortBy)
+        {
+            switch (sortBy)
+            {
+                case "title_asc":
+                    list = list.OrderBy(x => x.Title).ToList();
+                    break;
+                case "title_desc":
+                    list = list.OrderByDescending(x => x.Title).ToList();
+                    break;
+                case "created_date_asc":
+                    list = list.OrderBy(x => x.CreatedAt).ToList();
+                    break;
+                case "created_date_desc":
+                    list = list.OrderByDescending(x => x.CreatedAt).ToList();
+                    break;
+                case "duration_asc":
+                    list = list.OrderBy(x => x.Duration).ToList();
+                    break;
+                case "duration_desc":
+                    list = list.OrderByDescending(x => x.Duration).ToList();
+                    break;
+                default:
+                    list = list.OrderBy(x => x.Title).ToList();
+                    break;
+            }
+
+            return list;
+        }
+
+        public List<Artist> FilterFeatureForViewArtist(List<Artist> list, ArtistViewReqModel artistViewReqModel)
+        {
+
+            if (artistViewReqModel.StartDate != null && artistViewReqModel.EndDate != null)
+            {
+                DateTime startDate = artistViewReqModel.StartDate.Value.ToDateTime(TimeOnly.MinValue);
+                DateTime endDate = artistViewReqModel.EndDate.Value.ToDateTime(TimeOnly.MinValue);
+
+                list = list.Where(c => c.CreatedAt >= startDate && c.CreatedAt <= endDate).ToList();
+            }
+
+            return list;
+        }
+
+        public List<Artist> SortFeatureForViewArtist(List<Artist> list, string sortBy)
+        {
+            switch (sortBy)
+            {
+                case "name_asc":
+                    list = list.OrderBy(x => x.Name).ToList();
+                    break;
+                case "name_desc":
+                    list = list.OrderByDescending(x => x.Name).ToList();
+                    break;
+                default:
+                    list = list.OrderBy(x => x.Name).ToList();
                     break;
             }
 
