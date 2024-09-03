@@ -104,5 +104,27 @@ namespace MusicStreamingAPI.Controllers
             return StatusCode(result.Code, result);
         }
 
+        [HttpGet]
+        [Route("current-subscription")]
+        [Authorize]
+        public async Task<IActionResult> ViewCurrentSubsctiptionOfUser()
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _userService.ViewCurrentSubsctiptionOfUser(token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpGet]
+        [Route("current-info")]
+        [Authorize]
+        public async Task<IActionResult> ViewUserInfor()
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _userService.ViewUserInfor(token);
+            return StatusCode(result.Code, result);
+        }
+
     }
 }

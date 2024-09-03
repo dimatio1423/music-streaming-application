@@ -18,6 +18,11 @@ namespace Repositories.UserQueueRepos
             _context = context;
         }
 
+        public async Task<UserQueue> CheckSongInUserQueue(int userId, int songId)
+        {
+            return await _context.UserQueues.Where(x => x.UserId == userId && x.SongId == songId).FirstOrDefaultAsync();
+        }
+
         public async Task<List<UserQueue>> GetUserQueue(int userId, int? page, int? size)
         {
             var pageIndex = (page.HasValue && page > 0) ? page.Value : 1;

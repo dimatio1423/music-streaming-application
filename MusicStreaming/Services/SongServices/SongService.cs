@@ -17,6 +17,7 @@ using Repositories.PlayListRepos;
 using Repositories.PlaylistSongRepos;
 using Repositories.SongRepos;
 using Repositories.UserFavoriteRepos;
+using Repositories.UserQueueRepos;
 using Repositories.UserRepos;
 using Services.CloudinaryService;
 using Services.FileServices;
@@ -45,6 +46,7 @@ namespace Services.SongServices
         private readonly IArtistRepository _artistRepository;
         private readonly ICloudinaryService _cloudinaryService;
         private readonly IArtistSongRepository _artistSongRepository;
+        private readonly IUserQueueRepository _userQueueRepository;
         private readonly IFileService _fileService;
         private readonly IMapper _mapper;
 
@@ -60,6 +62,7 @@ namespace Services.SongServices
             IAlbumSongRepository albumSongRepository,
             ICloudinaryService cloudinaryService,
             IArtistSongRepository artistSongRepository,
+            IUserQueueRepository userQueueRepository,
             IFileService fileService,
             IMapper mapper)
         {
@@ -75,6 +78,7 @@ namespace Services.SongServices
             _artistRepository = artistRepository;
             _cloudinaryService = cloudinaryService;
             _artistSongRepository = artistSongRepository;
+            _userQueueRepository = userQueueRepository;
 
             _fileService = fileService;
 
@@ -405,6 +409,59 @@ namespace Services.SongServices
                 };
 
                 await _userFavoriteRepository.Insert(userFavorite);
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> AddSongToUserQueue(int songId, string token)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Add new song to user queue list successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+
+                    return result;
+                }
+
+                var currSong = await _songRepository.Get(songId);
+                if (currSong == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "The current song does not exist";
+                    return result;
+                }
+
+                UserQueue userQueue = new UserQueue
+                {
+                    UserId = currUser.UserId,
+                    SongId = currSong.SongId,
+                    AddedAt = DateTime.Now,
+                };
+
+                await _userQueueRepository.Insert(userQueue);
             }
             catch (Exception ex)
             {
@@ -814,6 +871,47 @@ namespace Services.SongServices
                 var listeningHistorySongList = await _songRepository.GetUserListeningHisotry(listeningHistorySong.Select(x => (int)x.SongId).ToList(), page, size);
 
                 result.Data = _mapper.Map<List<SongsResModel>>(listeningHistorySongList);
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> GetUserQueueSong(int? page, int? size, string token)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Get favorite songs of user successfully",
+            };
+
+            var decodedToken = _decodeToken.decode(token);
+
+            var currUser = await _userRepository.Get(Int32.Parse(decodedToken.userid));
+
+            if (currUser == null)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = "User does not exist";
+                return result;
+            }
+
+            try
+            {
+                var userQueuesSong = await _userQueueRepository.GetUserQueue(currUser.UserId, page, size);
+
+                var userQueuesSongList = await _songRepository.GetUserQueueSongs(userQueuesSong.Select(x => x.SongId).ToList(), page, size);
+
+                result.Data = _mapper.Map<List<SongsResModel>>(userQueuesSongList);
 
             }
             catch (Exception ex)
@@ -1278,6 +1376,62 @@ namespace Services.SongServices
                 }else
                 {
                     result.Message = "The current song does not belong to current favorite list of user";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccess = false;
+                result.Code = (int)HttpStatusCode.BadRequest;
+                result.Message = ex.Message;
+                return result;
+            }
+
+            return result;
+        }
+
+        public async Task<ResultModel> RemoveSongFromUserQueue(int songId, string token)
+        {
+            var result = new ResultModel
+            {
+                IsSuccess = true,
+                Code = (int)HttpStatusCode.OK,
+                Message = "Remove song from queue of user successfully"
+            };
+
+            try
+            {
+                var decodedToken = _decodeToken.decode(token);
+
+                var currUser = await _userRepository.GetUserByEmail(decodedToken.email);
+
+                if (currUser == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "User does not exist";
+                    return result;
+                }
+
+                var currSong = await _songRepository.Get(songId);
+
+                if (currSong == null)
+                {
+                    result.IsSuccess = false;
+                    result.Code = (int)HttpStatusCode.NotFound;
+                    result.Message = "Song does not exist";
+                    return result;
+                }
+
+                var userQueue = await _userQueueRepository.CheckSongInUserQueue(currUser.UserId, currSong.SongId);
+
+                if (userQueue != null)
+                {
+                    await _userQueueRepository.Remove(userQueue);
+                }
+                else
+                {
+                    result.Message = "The current song does not belong to current queue list of user";
                 }
 
             }

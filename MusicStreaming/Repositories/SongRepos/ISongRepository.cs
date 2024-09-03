@@ -20,6 +20,7 @@ namespace Repositories.SongRepos
         Task<List<Song>> GetSongsByArtist(int artistId);
 
         Task<List<Song>> GetUserFavoriteSongs(List<int> songIds, int? page, int? size);
+        Task<List<Song>> GetUserQueueSongs(List<int> songIds, int? page, int? size);
 
         Task<List<Song>> GetUserListeningHisotry(List<int> songIds, int? page, int? size);
         Task<List<Song>> GetRecommendSongsForUser(int userId, int? page, int? size);

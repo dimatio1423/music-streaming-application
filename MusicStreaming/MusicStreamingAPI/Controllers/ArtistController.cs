@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Repositories.ArtistSongRepos;
 using Services.ArtistServices;
 using Services.ArtistSongServices;
+using System.ComponentModel.DataAnnotations;
 
 namespace MusicStreamingAPI.Controllers
 {
@@ -45,11 +46,18 @@ namespace MusicStreamingAPI.Controllers
         [HttpPut]
         [Authorize]
 
-        public async Task<IActionResult> UpdateArtistProfile([FromBody] ArtistUpdateProfileReqModel artistUpdateProfileReqModel)
+        public async Task<IActionResult> UpdateArtistProfile([Required] IFormFile imagePath, string name, string bio)
         {
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
-            var result = await _artistService.UpdateArtistProfile(artistUpdateProfileReqModel, token);
+            var artistUpdateModel = new ArtistUpdateProfileReqModel
+            {
+                Bio = bio,
+                Name = name,
+                ImagePath = imagePath
+            };
+
+            var result = await _artistService.UpdateArtistProfile(artistUpdateModel, token);
             return StatusCode(result.Code, result);
         }
 

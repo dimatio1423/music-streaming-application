@@ -72,6 +72,18 @@ namespace MusicStreamingAPI.Controllers
         }
 
         [HttpGet]
+        [Route("queue")]
+        [Authorize]
+        public async Task<IActionResult> GetUserQueueSongs(
+            [FromQuery] int? page = 1, [FromQuery] int? size = 10)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _songService.GetUserQueueSong(page, size, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpGet]
         [Route("favorite")]
         [Authorize]
         public async Task<IActionResult> GetUserFavoriteSongs(
@@ -128,6 +140,18 @@ namespace MusicStreamingAPI.Controllers
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
             var result = await _songService.AddSongToUserFavorite(songId, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpPost]
+        [Route("queue/add-song")]
+        [Authorize]
+        public async Task<IActionResult> AddSongToQueue(
+           [FromQuery][Required] int songId)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _songService.AddSongToUserQueue(songId, token);
             return StatusCode(result.Code, result);
         }
 
@@ -200,6 +224,18 @@ namespace MusicStreamingAPI.Controllers
             var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
 
             var result = await _songService.RemoveSongFromUserFavorite(songId, token);
+            return StatusCode(result.Code, result);
+        }
+
+        [HttpDelete]
+        [Route("queue/remove-song")]
+        [Authorize]
+        public async Task<IActionResult> RemoveSongFromUserQueue(
+         [FromQuery][Required] int songId)
+        {
+            var token = Request.Headers["Authorization"].ToString().Split(" ")[1];
+
+            var result = await _songService.RemoveSongFromUserQueue(songId, token);
             return StatusCode(result.Code, result);
         }
 

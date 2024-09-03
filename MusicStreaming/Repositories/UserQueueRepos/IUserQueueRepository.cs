@@ -13,6 +13,7 @@ namespace Repositories.UserQueueRepos
         Task<List<UserQueue>> GetUserQueue(int userId, int? page, int? size);
         Task<List<UserQueue>> GetUserQueueBySongIds(List<int> songIds);
         Task<List<UserQueue>> GetUserQueue(int userId);
+        Task<UserQueue> CheckSongInUserQueue(int userId, int songId);
 
     }
 }

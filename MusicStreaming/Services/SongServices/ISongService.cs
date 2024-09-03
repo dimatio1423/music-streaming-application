@@ -24,6 +24,8 @@ namespace Services.SongServices
 
         Task<ResultModel> GetUserListeningHisotry(int? page, int? size, string token);
 
+        Task<ResultModel> GetUserQueueSong(int? page, int? size, string token);
+
         Task<ResultModel> GetRecommendSongsForUser(int? page, int? size, string token);
 
         Task<ResultModel> AddNewSong(SongCreateReqModel songCreateReq, string token);
@@ -57,5 +59,10 @@ namespace Services.SongServices
         Task<ResultModel> PauseSong(PauseSongReqModel pauseSongReqModel, string token);
 
         Task<ResultModel> ReplaySong(int songId, string token);
+
+        Task<ResultModel> AddSongToUserQueue(int songId, string token);
+
+        Task<ResultModel> RemoveSongFromUserQueue(int songId, string token);
+
     }
 }
